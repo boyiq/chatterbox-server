@@ -16,15 +16,21 @@
     "underscore": "^1.11.0"
   },
   "scripts": {
-    "start:server": "node server/basic-server.js",
+    "start:server": "nodemon server/basic-server.js",
+    "start:server:debug": "nodemon --inspect server/basic-server.js",
     "start:client": "npx live-server",
     "test": "mocha server/spec",
     "lint": "eslint ./"
+  },
+  "nodemonConfig": {
+    "watch": "./server/**/*",
+    "ignore": "./server/spec/**/*"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "eslint-config-hackreactor": "https://github.com/reactorcore/eslint-config-hackreactor",
     "mocha": "^8.2.1",
+    "nodemon": "^2.0.20",
     "request": "^2.88.2"
   }
 }
