@@ -17,6 +17,13 @@ describe('server', function() {
     });
   });
 
+  it('should have a json content-type header', function(done) {
+    request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
+      expect(response.headers['content-type']).to.equal('application/json');
+      done();
+    });
+  });
+
   it('should send back an array', function(done) {
     request('http://127.0.0.1:3000/classes/messages', function(error, response, body) {
       var parsedBody = JSON.parse(body);

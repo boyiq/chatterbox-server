@@ -25,6 +25,16 @@ describe('Node Server Request Listener Function', function() {
     expect(res._ended).to.equal(true);
   });
 
+  it('should have a json content-type header', function() {
+    var req = new stubs.request('/classes/messages', 'GET');
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._headers['Content-Type']).to.equal('application/json');
+    expect(res._ended).to.equal(true);
+  });
+
   it('Should send back an array', function() {
     var req = new stubs.request('/classes/messages', 'GET');
     var res = new stubs.response();
@@ -54,6 +64,35 @@ describe('Node Server Request Listener Function', function() {
     // expect(res._data).to.equal(JSON.stringify('\n'));
     expect(res._ended).to.equal(true);
   });
+
+  it('Should return 400 on bad posts to /classes/messages', function() {
+    const stubMsg = '{ea}';
+    const req = new stubs.request('/classes/messages', 'POST', stubMsg);
+    const res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    // Expect 400 bad request
+    expect(res._responseCode).to.equal(400);
+    expect(res._ended).to.equal(true);
+  });
+
+
+  it('Should return 404 on bad methods to /classes/messages', function() {
+    var stubMsg = {
+      username: 'Jono',
+      text: 'Do my bidding!'
+    };
+    const req = new stubs.request('/classes/messages', 'DELETE', stubMsg);
+    const res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    // Expect 400 bad request
+    expect(res._responseCode).to.equal(404);
+    expect(res._ended).to.equal(true);
+  });
+
 
   it('Should respond with messages that were previously posted', function() {
     var stubMsg = {

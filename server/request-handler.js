@@ -22,11 +22,16 @@ this file and include it in basic-server.js so that it actually works.
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
 var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
+  'Access-Control-Allow-Origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept, authorization',
   'access-control-max-age': 10 // Seconds.
 };
+
+const path = require('path');
+const fs = require('fs');
+
+let storage = [];
 
 // Handles /classes/messages
 const getClassesMessages = (request, response) => {
@@ -34,7 +39,6 @@ const getClassesMessages = (request, response) => {
 
   // See the note below about CORS headers.
   let headers = defaultCorsHeaders;
-
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
@@ -42,33 +46,67 @@ const getClassesMessages = (request, response) => {
   headers['Content-Type'] = 'application/json';
 
   response.writeHead(statusCode, headers);
-  response.end(JSON.stringify([]));
+  response.end(JSON.stringify(storage));
 };
 
 const postClassesMessages = (request, response) => {
   let statusCode = 201;
   let headers = defaultCorsHeaders;
-  headers['Content-Type'] = 'application/json';
-
   let data = '';
+
+  headers['Content-Type'] = 'application/json';
 
   request.on('data', (chunk) => {
     data += chunk;
   });
 
   request.on('end', () => {
-    response.writeHead(statusCode, headers);
-    response.end(JSON.stringify(data));
+    try {
+      const obj = JSON.parse(data);
+
+      if (typeof obj !== 'object') {
+        throw new Error();
+      }
+
+      storage.push(obj);
+      response.writeHead(statusCode, headers);
+      response.end(JSON.stringify(storage));
+    } catch (e) {
+      response.writeHead(400, headers);
+      response.end(JSON.stringify({
+        error: 'Missing body data'
+      }));
+    }
+  });
+};
+
+const getClient = (request, response) => {
+  const filePath = path.join('..', __dirname, 'chatterbox.html');
+
+  fs.readFile(filePath, function(err, data) {
+    const headers = defaultCorsHeaders;
+
+    if (err) {
+      headers['Content-Type'] = 'text/plain';
+      response.writeHead(500, headers);
+      response.end('Failed to read file');
+      return;
+    }
+
+    res.writeHead(200, headers);
+    res.end(data);
   });
 };
 
 const requestHandler = function(request, response) {
   if (request.url === '/classes/messages') {
-    if (request.method === "GET") {
+    if (request.method === 'GET' || request.headers['access-control-request-method'] === 'GET') {
       return getClassesMessages(request, response);
-    } else if (request.method === "POST") {
+    } else if (request.method === 'POST' || request.headers['access-control-request-method'] === 'POST') {
       return postClassesMessages(request, response);
     }
+  } else if (request.url === '/client') {
+    return getClient(request, response);
   }
 
   const headers = defaultCorsHeaders;

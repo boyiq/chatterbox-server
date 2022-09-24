@@ -7,4 +7,4 @@ $.ajaxPrefilter(function (settings, _, jqXHR) {
 });
 
 // Put your campus prefix here
-window.CAMPUS = 'FILL_ME_IN';
+window.CAMPUS = 'rfp';
